@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-subpath/
+playwright-report/
+test-results/
+.DS_Store
+*.tsbuildinfo
+ANTIGRAVITY_IMPLEMENTATION_PLAN.md

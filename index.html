@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>Multimodal AI in the Browser — Chrome Prompt API vs. Transformers.js</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div class="sr-only" aria-live="polite" aria-atomic="true" id="polite-announcer"></div>
+    <div class="sr-only" aria-live="assertive" aria-atomic="true" id="assertive-announcer"></div>
+
+    <div class="page-shell">
+      <header class="page-header">
+        <p class="eyebrow">On-device multimodal comparison demo</p>
+        <h1>Multimodal AI in the browser: Chrome Prompt API vs. Transformers.js</h1>
+        <p class="lead">
+          Compare Chrome’s built-in <code>LanguageModel</code> API and
+          <code>@huggingface/transformers</code> running <code>SmolVLM-256M-Instruct</code>
+          in a WebGPU Web Worker. Images and prompts stay on this device; preparing a provider may
+          download model weights into browser storage.
+        </p>
+        <p class="test-mode-banner" id="test-mode-banner" hidden>
+          Test double mode active — simulated provider adapters are running for automated UI
+          verification, not real model inference.
+        </p>
+      </header>
+
+      <main id="main-content" class="main-grid">
+        <section class="card" aria-labelledby="provider-section-heading">
+          <h2 id="provider-section-heading">1. Provider and availability</h2>
+          <fieldset class="provider-fieldset">
+            <legend class="sr-only">Choose one inference provider</legend>
+
+            <div class="provider-grid">
+              <label class="provider-option" for="provider-chrome">
+                <span class="provider-option-header">
+                  <input
+                    type="radio"
+                    id="provider-chrome"
+                    name="provider"
+                    value="chrome-prompt-api"
+                    checked
+                  />
+                  <span class="provider-title">Chrome Prompt API</span>
+                  <span class="status-badge" id="badge-chrome">checking</span>
+                </span>
+                <span class="provider-desc">
+                  Runs browser-managed Gemini Nano via <code>LanguageModel</code> on the main
+                  thread. Model weights and revision are managed by Chrome.
+                </span>
+                <span class="provider-status-note" id="reason-chrome"></span>
+              </label>
+
+              <label class="provider-option" for="provider-transformers">
+                <span class="provider-option-header">
+                  <input
+                    type="radio"
+                    id="provider-transformers"
+                    name="provider"
+                    value="transformers-smolvlm"
+                  />
+                  <span class="provider-title">Transformers.js (SmolVLM-256M)</span>
+                  <span class="status-badge" id="badge-transformers">unchecked</span>
+                </span>
+                <span class="provider-desc">
+                  Loads <code>HuggingFaceTB/SmolVLM-256M-Instruct</code> inside a module Web
+                  Worker on WebGPU (~170 MiB ONNX weights cached per origin).
+                </span>
+                <span class="provider-status-note" id="reason-transformers"></span>
+              </label>
+            </div>
+          </fieldset>
+        </section>
+
+        <section class="card" aria-labelledby="image-section-heading">
+          <h2 id="image-section-heading">2. Image input</h2>
+          <p class="section-hint">
+            Pick a bundled CC0 example or upload a local JPEG, PNG, or WebP image (max 10 MiB, 16 MP).
+            Images are oriented from EXIF and normalized to a lossless PNG with a longest edge of
+            at most 1,024 px before either provider sees them.
+          </p>
+
+          <fieldset class="provider-fieldset">
+            <legend class="sr-only">Bundled examples</legend>
+            <div class="example-picker" id="example-buttons"></div>
+          </fieldset>
+
+          <div class="upload-row">
+            <label for="image-upload" class="field-label">Upload local image</label>
+            <input
+              id="image-upload"
+              name="imageUpload"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              aria-describedby="upload-constraints"
+            />
+            <span id="upload-constraints" class="field-hint">
+              Static JPEG, PNG, or WebP only (no SVG or animated formats).
+            </span>
+          </div>
+
+          <div class="error-banner" id="image-error" role="alert" hidden></div>
+
+          <figure class="preview-figure">
+            <img id="preview-image" alt="Selected input preview" class="preview-img" hidden />
+            <figcaption id="preview-meta" class="preview-meta">
+              No image normalized yet.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section class="card" aria-labelledby="prompt-section-heading">
+          <h2 id="prompt-section-heading">3. Question and experiment controls</h2>
+          <form id="experiment-form" novalidate>
+            <div class="field-group">
+              <div class="label-row">
+                <label for="question-input" class="field-label">Question</label>
+                <button type="button" id="preset-question-btn" class="link-button">
+                  Reset to preset question
+                </button>
+              </div>
+              <textarea
+                id="question-input"
+                name="question"
+                rows="3"
+                required
+                aria-describedby="question-hint"
+              ></textarea>
+              <span id="question-hint" class="field-hint">
+                Both providers receive the exact same question text without hidden provider-specific
+                coaching.
+              </span>
+            </div>
+
+            <div class="metadata-fields">
+              <div class="field-group">
+                <label for="cache-condition" class="field-label">Cache condition</label>
+                <select id="cache-condition" name="cacheCondition">
+                  <option value="unknown">Unknown / not controlled</option>
+                  <option value="clean-download">Clean download</option>
+                  <option value="cached-new-session">Cached files / new session</option>
+                  <option value="prepared-model">Prepared model in current tab</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label for="hardware-note" class="field-label">
+                  Hardware note (optional)
+                </label>
+                <input
+                  id="hardware-note"
+                  name="hardwareNote"
+                  type="text"
+                  placeholder="e.g. Apple M2 Pro, macOS 27.2"
+                />
+              </div>
+            </div>
+
+            <div class="actions-bar">
+              <button type="button" id="prepare-btn" class="btn btn-secondary">
+                Prepare model
+              </button>
+              <button type="submit" id="run-btn" class="btn btn-primary">
+                Run experiment
+              </button>
+              <button type="button" id="stop-btn" class="btn btn-danger">
+                Stop
+              </button>
+              <button type="button" id="clear-btn" class="btn btn-ghost">
+                Clear results
+              </button>
+            </div>
+
+            <div class="progress-panel" id="prepare-progress-panel" hidden>
+              <label for="prepare-progress" id="prepare-progress-label" class="field-hint">
+                Model preparation progress
+              </label>
+              <progress id="prepare-progress" max="100"></progress>
+            </div>
+          </form>
+        </section>
+
+        <section class="card" aria-labelledby="output-section-heading">
+          <div class="section-header-row">
+            <h2 id="output-section-heading">4. Active output and timings</h2>
+            <span class="status-badge" id="request-status-badge">idle</span>
+          </div>
+
+          <div class="error-banner" id="run-error" role="alert" hidden></div>
+
+          <div class="output-surface">
+            <div id="active-output" class="output-markdown">
+              <p class="output-placeholder">Run an experiment to see model output.</p>
+            </div>
+          </div>
+
+          <dl class="timings-grid" aria-label="Run timing measurements">
+            <div class="timing-item">
+              <dt>Preparation</dt>
+              <dd id="timing-prep">—</dd>
+            </div>
+            <div class="timing-item">
+              <dt>Request to first text</dt>
+              <dd id="timing-first-text">—</dd>
+            </div>
+            <div class="timing-item">
+              <dt>Request to completion</dt>
+              <dd id="timing-total">—</dd>
+            </div>
+          </dl>
+
+          <details class="tech-details">
+            <summary>Technical details and timing boundaries</summary>
+            <div class="tech-details-body" id="active-tech-details"></div>
+          </details>
+        </section>
+
+        <section class="card" aria-labelledby="comparison-section-heading">
+          <div class="section-header-row">
+            <h2 id="comparison-section-heading">5. Recorded comparison runs</h2>
+            <div class="export-controls">
+              <button type="button" id="export-btn" class="btn btn-secondary" disabled>
+                Export JSON records
+              </button>
+            </div>
+          </div>
+          <p class="section-hint">
+            Completed, cancelled, and failed runs stay in memory during this session so you can
+            switch providers and compare results side by side. Responses render safe formatted
+            Markdown on screen without raw HTML or external links; JSON export preserves raw
+            response text, prompts, timings, cache condition, and metadata while excluding image
+            bytes and original local filenames.
+          </p>
+          <p class="comparison-caveat">
+            Differences reflect model weights, image preprocessing/patching, prompt templates,
+            decoding defaults, and runtime together — not a controlled runtime benchmark.
+          </p>
+
+          <div id="records-list" class="records-list">
+            <p class="empty-state">No recorded runs yet.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <nav aria-label="Reference links">
+          <ul class="footer-links">
+            <li>
+              <a
+                href="https://github.com/Puppo/multimodal-ai-in-the-browser"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Source repository
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://developer.chrome.com/docs/ai/prompt-api"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Chrome Prompt API docs
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                SmolVLM-256M-Instruct model card
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://nearform.com/digital-community/web-ai-runtimes-five-ways-to-run-a-language-model-in-the-browser"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Previous article: Web AI runtimes
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <p class="footer-note">
+          Built by Luca Del Puppo as the companion demo for the upcoming Nearform article on
+          multimodal AI in the browser.
+        </p>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

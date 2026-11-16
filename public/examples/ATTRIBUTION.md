@@ -1,0 +1,9 @@
+# Bundled Example Image Attribution & Provenance
+
+All three bundled example images are redistributed under **CC0 1.0 Universal (Public Domain Dedication)** from Wikimedia Commons. Thumbnails at `1280px` width are bundled directly so initial page loads stay fast while still exercising the application's `<= 1,024px` longest-edge normalization step.
+
+| File                   | Original Wikimedia Commons Title                  | Author                            | License | Dimensions | SHA-256                                                            | Source URL                                                                         |
+| ---------------------- | ------------------------------------------------- | --------------------------------- | ------- | ---------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `scene-objects.jpg`    | `File:Laptop on desk book stacks (Unsplash).jpg`  | Freddie Marriage (`fredmarriage`) | CC0 1.0 | `1280x853` | `418afa22105928a95994b19c4e4e2cf85e04b371b591504bf8537b33f4f4219e` | https://commons.wikimedia.org/wiki/File:Laptop_on_desk_book_stacks_(Unsplash).jpg  |
+| `short-text.jpg`       | `File:Electric Fence Warning Sign 2023-01-15.jpg` | Thomas Booker (`CoderThomasB`)    | CC0 1.0 | `1280x853` | `061aab783c46cbe34b11ac29bec6fb5cf0b8b3b269914c7544944453600bd4a0` | https://commons.wikimedia.org/wiki/File:Electric_Fence_Warning_Sign_2023-01-15.jpg |
+| `ambiguous-object.jpg` | `File:Covered car in Vendôme.jpg`                 | Mathious Ier                      | CC0 1.0 | `1280x960` | `a2e77ffd5ff8dcf4bfc7fbc5cab29591b868a62c2c22ea30151f421c4fbe9feb` | https://commons.wikimedia.org/wiki/File:Covered_car_in_Vend%C3%B4me.jpg            |
