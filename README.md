@@ -7,6 +7,8 @@ Educational companion demo for Luca Del Puppo’s Nearform article comparing two
 
 > **Comparison caveat:** This demo compares two complete browser-side solutions (model architecture and weights, image preprocessing/patching, prompt formatting, decoding defaults, and execution runtime). Results must not be read as a controlled runtime benchmark.
 
+**Live demo:** [https://puppo.github.io/multimodal-ai-in-the-browser/](https://puppo.github.io/multimodal-ai-in-the-browser/)
+
 ## Quick Start
 
 ### Prerequisites
@@ -65,6 +67,8 @@ The Vite `base` path is configurable via `VITE_BASE_PATH` (default `/`):
 ```bash
 VITE_BASE_PATH=/multimodal-ai-in-the-browser/ npm run build
 ```
+
+Pushes to `main` automatically build and deploy the demo to GitHub Pages via [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml).
 
 ## Documentation & Licensing
 
