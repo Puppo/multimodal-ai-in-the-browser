@@ -7,6 +7,34 @@ const ONE_PIXEL_PNG = Buffer.from(
 );
 
 test.describe('Multimodal AI demo UI workflows (with Playwright test doubles)', () => {
+  test('example links select the image and preset without preparing or running a model', async ({
+    page,
+  }) => {
+    await installMockProviders(page, {
+      chrome: { availability: 'needs-download' },
+    });
+
+    for (const [query, id, question] of [
+      ['scene', 'scene', 'What objects are visible and where are they?'],
+      ['text', 'text', 'Transcribe the visible text.'],
+      [
+        'ambiguous',
+        'ambiguous',
+        'Can you identify the partly hidden object? Explain any uncertainty.',
+      ],
+      ['unknown', 'scene', 'What objects are visible and where are they?'],
+    ] as const) {
+      await page.goto(`/?example=${query}`);
+      await expect(page.locator('#question-input')).toHaveValue(question);
+      await expect(
+        page.locator(`.example-btn[data-example-id="${id}"]`),
+      ).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.locator('#badge-chrome')).toHaveText('needs-download');
+      await expect(page.locator('#run-btn')).toBeDisabled();
+      await expect(page.locator('#prepare-progress-panel')).toBeHidden();
+    }
+  });
+
   test('shows unavailable provider explanation while allowing independent selection and preparation of the other provider', async ({
     page,
   }) => {

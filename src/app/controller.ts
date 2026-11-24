@@ -121,8 +121,10 @@ export class AppController {
     }
   }
 
-  async init(): Promise<void> {
-    const firstExample = BUNDLED_EXAMPLES[0];
+  async init(initialExampleId?: string | null): Promise<void> {
+    const firstExample =
+      BUNDLED_EXAMPLES.find((example) => example.id === initialExampleId) ??
+      BUNDLED_EXAMPLES[0];
     await Promise.all([
       firstExample ? this.selectExample(firstExample.id) : Promise.resolve(),
       this.checkAvailability(this.state.selectedProvider),

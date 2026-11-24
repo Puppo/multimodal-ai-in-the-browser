@@ -17,4 +17,7 @@ window.addEventListener('pagehide', () => {
   void controller.dispose();
 });
 
-void controller.init();
+const initialExample = new URLSearchParams(window.location.search).get(
+  'example',
+);
+void controller.init(initialExample);

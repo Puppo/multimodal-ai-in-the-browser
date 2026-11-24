@@ -41,6 +41,13 @@ npm run preview
 
 ## Bundled Examples
 
+Link directly to an example with its preset question using `?example=scene`,
+`?example=text`, or `?example=ambiguous`. For instance:
+[Try the warning sign](https://puppo.github.io/multimodal-ai-in-the-browser/?example=text).
+Missing or unknown example IDs fall back to the desk scene. Opening a link only
+selects the image and question; model preparation and inference remain explicit
+user actions.
+
 Three CC0-licensed photographs from Wikimedia Commons are included in [public/examples/](public/examples) (full provenance and SHA-256 hashes in [public/examples/ATTRIBUTION.md](public/examples/ATTRIBUTION.md)):
 
 1. **Few objects in a clear scene** (`scene-objects.jpg`): _"What objects are visible and where are they?"_
